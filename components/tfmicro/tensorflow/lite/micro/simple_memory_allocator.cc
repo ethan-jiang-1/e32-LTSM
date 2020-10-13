@@ -24,6 +24,11 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 
+extern "C" void inspect_memory(const char* mark);
+extern "C" void inspect_number(const char* mark, size_t num);
+extern "C" void inspect_pointer(const char* mark, void* p);
+
+
 namespace tflite {
 
 SimpleMemoryAllocator::SimpleMemoryAllocator(ErrorReporter* error_reporter,
@@ -34,7 +39,10 @@ SimpleMemoryAllocator::SimpleMemoryAllocator(ErrorReporter* error_reporter,
       buffer_tail_(buffer_tail),
       head_(buffer_head),
       tail_(buffer_tail),
-      temp_(buffer_head_) {}
+      temp_(buffer_head_) {
+        inspect_pointer("SimpleMemoryAllocator:buffer_head", buffer_head);
+        inspect_pointer("SimpleMemoryAllocator:buffer_tail", buffer_tail);
+      }
 
 SimpleMemoryAllocator::SimpleMemoryAllocator(ErrorReporter* error_reporter,
                                              uint8_t* buffer,
@@ -87,6 +95,11 @@ TfLiteStatus SimpleMemoryAllocator::SetHeadBufferSize(size_t size,
 
 uint8_t* SimpleMemoryAllocator::AllocateFromTail(size_t size,
                                                  size_t alignment) {
+
+  inspect_number("AllocateFromTail:tail_", (size_t)tail_);
+  inspect_number("AllocateFromTail:size", size);
+  inspect_number("AllocateFromTail:alignment", alignment);
+
   uint8_t* const aligned_result = AlignPointerDown(tail_ - size, alignment);
   if (aligned_result < head_) {
 #ifndef TF_LITE_STRIP_ERROR_STRINGS

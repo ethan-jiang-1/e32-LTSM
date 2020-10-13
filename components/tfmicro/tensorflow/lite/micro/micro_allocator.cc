@@ -33,6 +33,9 @@ limitations under the License.
 #include "tensorflow/lite/micro/simple_memory_allocator.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
+extern "C" void inspect_memory(const char* mark);
+extern "C" void inspect_number(const char* mark, size_t num);
+
 namespace tflite {
 
 namespace {
@@ -651,6 +654,7 @@ TfLiteStatus MicroAllocator::StartModelAllocation(
     NodeAndRegistration** node_and_registrations,
     TfLiteEvalTensor** eval_tensors) {
   TFLITE_DCHECK(model != nullptr);
+  inspect_memory("MicroAllocator::StartModelAllocation");
 
   if (model_is_allocating_) {
     TF_LITE_REPORT_ERROR(error_reporter_,
@@ -661,13 +665,21 @@ TfLiteStatus MicroAllocator::StartModelAllocation(
 
   model_is_allocating_ = true;
 
+  inspect_memory("MicroAllocator::StartModelAllocation:InitScratchBufferData");
   TF_LITE_ENSURE_STATUS(InitScratchBufferData());
+
+  inspect_memory("MicroAllocator::StartModelAllocation:AllocateTfLiteEvalTensors");
   TF_LITE_ENSURE_STATUS(AllocateTfLiteEvalTensors(model, eval_tensors));
+
+  inspect_memory("MicroAllocator::StartModelAllocation:AllocateNodeAndRegistrations");
   TF_LITE_ENSURE_STATUS(
       AllocateNodeAndRegistrations(model, node_and_registrations));
+
+  inspect_memory("MicroAllocator::StartModelAllocation:PrepareNodeAndRegistrationDataFromFlatbuffer");
   TF_LITE_ENSURE_STATUS(PrepareNodeAndRegistrationDataFromFlatbuffer(
       model, op_resolver, *node_and_registrations));
 
+  inspect_memory("MicroAllocator::StartModelAllocation:done");
   return kTfLiteOk;
 }
 
@@ -957,11 +969,18 @@ void MicroAllocator::ResetTempAllocations() {
 TfLiteStatus MicroAllocator::AllocateTfLiteEvalTensors(
     const Model* model, TfLiteEvalTensor** eval_tensors) {
   TFLITE_DCHECK(eval_tensors != nullptr);
+  inspect_memory("MicroAllocator::AllocateTfLiteEvalTensors");
+
 
   const SubGraph* subgraph = GetSubGraphFromModel(model);
   TFLITE_DCHECK(subgraph != nullptr);
+  inspect_memory("MicroAllocator::AllocateTfLiteEvalTensors:GetSubGraphFromModel");
 
   size_t alloc_count = subgraph->tensors()->size();
+  inspect_number("alloc_count", alloc_count);
+  inspect_number("alloc_bytes", sizeof(TfLiteEvalTensor) * alloc_count);
+  inspect_number("alloc_alignof", alignof(TfLiteEvalTensor));
+
   TfLiteEvalTensor* tensors =
       reinterpret_cast<TfLiteEvalTensor*>(memory_allocator_->AllocateFromTail(
           sizeof(TfLiteEvalTensor) * alloc_count, alignof(TfLiteEvalTensor)));

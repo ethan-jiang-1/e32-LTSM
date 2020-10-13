@@ -44,7 +44,9 @@ uint8_t tensor_arena[kTensorArenaSize];
 }  // namespace
 
 
-extern void inspect_memory(const char* mark);
+extern "C" void inspect_memory(const char* mark);
+extern "C" void inspect_number(const char* mark, size_t num);
+extern "C" void inspect_pointer(const char* mark, void* p);
 
 // The name of this function is important for Arduino compatibility.
 void setup() {
@@ -75,6 +77,14 @@ void setup() {
   static tflite::AllOpsResolver resolver;
 
   // Build an interpreter to run the model with.
+
+  //TODO: TOSTUDY
+  // Ethan: this is where the intepreter initialized (should study how here -- it will initial simple allocator)
+  //Runtime error as below:
+  //Failed to allocate tail memory. Requested: 30864, available 3020, missing: 27844
+  //Failed to allocate memory for context->eval_tensors, 30864 bytes required
+  //Failed starting model allocation.  
+  inspect_number("kTensorArenaSize", kTensorArenaSize);
   static tflite::MicroInterpreter static_interpreter(
       model, resolver, tensor_arena, kTensorArenaSize, error_reporter);
   interpreter = &static_interpreter;
