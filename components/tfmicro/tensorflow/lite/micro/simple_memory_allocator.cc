@@ -96,9 +96,10 @@ TfLiteStatus SimpleMemoryAllocator::SetHeadBufferSize(size_t size,
 uint8_t* SimpleMemoryAllocator::AllocateFromTail(size_t size,
                                                  size_t alignment) {
 
-  inspect_number("AllocateFromTail:tail_", (size_t)tail_);
-  inspect_number("AllocateFromTail:size", size);
-  inspect_number("AllocateFromTail:alignment", alignment);
+  //Ethan disable inspect here
+  //inspect_number("AllocateFromTail:tail_", (size_t)tail_);
+  //inspect_number("AllocateFromTail:size", size);
+  //inspect_number("AllocateFromTail:alignment", alignment);
 
   uint8_t* const aligned_result = AlignPointerDown(tail_ - size, alignment);
   if (aligned_result < head_) {

@@ -36,10 +36,13 @@ int inference_count = 0;
 // Create an area of memory to use for input, output, and intermediate arrays.
 // Minimum arena size, at the time of writing. After allocating tensors
 // you can retrieve this value by invoking interpreter.arena_used_bytes().
-const int kModelArenaSize = 2468;
+//const int _kModelArenaSize = 2468;
 // Extra headroom for model + alignment + future interpreter changes.
-const int kExtraArenaSize = 560 + 16 + 100;
-const int kTensorArenaSize = kModelArenaSize + kExtraArenaSize;
+//const int _kExtraArenaSize = 560 + 16 + 100;
+//const int kTensorArenaSize = _kModelArenaSize + _kExtraArenaSize;
+
+//Ethan alter the number by real result
+const int kTensorArenaSize = 50316 * 3;
 uint8_t tensor_arena[kTensorArenaSize];
 }  // namespace
 
@@ -99,8 +102,9 @@ void setup() {
   inspect_memory("mark3");
 
   // Obtain pointers to the model's input and output tensors.
-  input = interpreter->input(0);
-  output = interpreter->output(0);
+  //Ethan temp disable input/output tensor as our new tensors are different
+  //input = interpreter->input(0);
+  //output = interpreter->output(0);
 
   // Keep track of how many inferences we have performed.
   inference_count = 0;
@@ -108,6 +112,10 @@ void setup() {
 
 // The name of this function is important for Arduino compatibility.
 void loop() {
+  inspect_memory("loop");
+  if (true)
+    return;
+
   // Calculate an x value to feed into the model. We compare the current
   // inference_count to the number of inferences per cycle to determine
   // our position within the range of possible x values the model was
