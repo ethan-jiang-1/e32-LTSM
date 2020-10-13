@@ -43,8 +43,13 @@ const int kTensorArenaSize = kModelArenaSize + kExtraArenaSize;
 uint8_t tensor_arena[kTensorArenaSize];
 }  // namespace
 
+
+extern void inspect_memory(const char* mark);
+
 // The name of this function is important for Arduino compatibility.
 void setup() {
+  inspect_memory("mark1");
+
   // Set up logging. Google style is to avoid globals or statics because of
   // lifetime uncertainty, but since this has a trivial destructor it's okay.
   // NOLINTNEXTLINE(runtime-global-variables)
@@ -62,6 +67,9 @@ void setup() {
     return;
   }
 
+  inspect_memory("mark2");
+
+
   // This pulls in all the operation implementations we need.
   // NOLINTNEXTLINE(runtime-global-variables)
   static tflite::AllOpsResolver resolver;
@@ -77,6 +85,8 @@ void setup() {
     TF_LITE_REPORT_ERROR(error_reporter, "AllocateTensors() failed");
     return;
   }
+
+  inspect_memory("mark3");
 
   // Obtain pointers to the model's input and output tensors.
   input = interpreter->input(0);
